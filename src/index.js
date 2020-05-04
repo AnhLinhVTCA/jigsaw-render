@@ -1,17 +1,52 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
 import './index.css';
-import App from './App';
-import * as serviceWorker from './serviceWorker';
+import {
+  resizeCanvas,
+  createOrthoCamera,
+  createGameLoop,
+  loadTexture,
+} from 'gdxjs';
+import SpriteBatch from './SpriteBatch';
 
-ReactDOM.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-  document.getElementById('root')
-);
+const init = async () => {
+  const canvas = document.getElementById('main');
+  const pixelRatio = window.devicePixelRatio || 1;
+  const [width, height] = resizeCanvas(canvas, pixelRatio);
+  const gl = canvas.getContext('webgl');
 
-// If you want your app to work offline and load faster, you can change
-// unregister() to register() below. Note this comes with some pitfalls.
-// Learn more about service workers: https://bit.ly/CRA-PWA
-serviceWorker.unregister();
+  const camera = createOrthoCamera(width, height, width, height);
+  const batch = new SpriteBatch(gl);
+  const texture = await loadTexture(gl, './thach.jpg');
+  const mask = await loadTexture(gl, './mask.png');
+  batch.setMask(mask);
+
+  gl.clearColor(0, 0, 0, 1);
+  const update = delta => {
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    batch.setProjection(camera.combined);
+    batch.begin();
+    batch.draw(
+      texture,
+      0,
+      0,
+      300,
+      400,
+      0,
+      0,
+      0,
+      1,
+      1,
+      0,
+      0,
+      1,
+      1,
+      0,
+      0,
+      0.5,
+      0.5
+    );
+    batch.end();
+  };
+  createGameLoop(update);
+};
+
+init();
